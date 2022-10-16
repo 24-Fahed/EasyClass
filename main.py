@@ -10,9 +10,9 @@ import os
 class EasyClass(object):
     def __init__(self, classurl, userID, passwd):
         # 创建浏览器驱动
-        self.drive = webdriver.Firefox()
+        # self.drive = webdriver.Firefox(executable_path="D:\source\github\EasyClass\driver\geckodriver.exe")
+        self.drive = webdriver.Firefox(executable_path=".\driver\geckodriver.exe")
         # 创建网址组装格式
-        # self.demo = 'https://mooc1-1.chaoxing.com/mycourse/studentstudy?chapterId={}&courseId={}&clazzid={}&enc={}'.format('', '', '', self.createwebdemo(classurl))
         self.classurl = classurl
         self.userID = userID
         self.passwd = passwd
@@ -26,7 +26,6 @@ class EasyClass(object):
         self.switchclass = False
 
     def createwebdemo(self, classurl):
-        # url = 'https://mooc1-1.chaoxing.com/mycourse/studentstudy?chapterId=398481847&courseId=217666369&clazzid=39610013&enc=1812c2df5429653b1f6ed82782730245'
         ens = findall('enc=(.*)', classurl)
         # print(ens)
         return ens
@@ -40,9 +39,9 @@ class EasyClass(object):
         '''
         self.drive.get(self.classurl)
         sleep(1)
-        content = self.drive.find_element_by_id("phone")
-        password = self.drive.find_element_by_id("pwd")
-        button = self.drive.find_element_by_id("loginBtn")
+        content = self.drive.find_element(By.ID, "phone")
+        password = self.drive.find_element(By.ID, "pwd")
+        button = self.drive.find_element(By.ID, "loginBtn")
 
         content.send_keys(self.userID)
         password.send_keys(self.passwd)
@@ -75,7 +74,7 @@ class EasyClass(object):
         self.drive.switch_to.frame(0)
         sleep(2)
 
-        button = self.drive.find_elements_by_xpath('//div[@id="video"]/button')
+        button = self.drive.find_elements(By.XPATH, '//div[@id="video"]/button')
         print(button[0].text)
         button[0].click()
 
@@ -87,7 +86,7 @@ class EasyClass(object):
         '''
         sleep(1)
         # 寻找提交按钮
-        sub_butt = self.drive.find_element_by_id("videoquiz-submit")
+        sub_butt = self.drive.find_element(By.ID, "videoquiz-submit")
         # 点击提交按钮
         sub_butt.click()
         return
@@ -105,11 +104,12 @@ class EasyClass(object):
         # 上面为老代码
         # 超星更新，将答题页面修改为一个iframe
 
-        qustion = self.drive.find_element_by_class_name("tkItem")
-        quiz = qustion.find_element_by_class_name("tkItem_title")
+        qustion = self.drive.find_element(By.CLASS_NAME, "tkItem")
+        quiz = qustion.find_element(By.CLASS_NAME, "tkItem_title")
         print(quiz.text)
         # opt = qustion.find_elements_by_xpath("/html/body/div/div[4]/div/div[1]/span/div/div/div/div[2]/div/ul/li[1]/label/span/input")
-        opt = qustion.find_elements_by_xpath(
+        opt = qustion.find_elements(
+            By.XPATH,
             "/html/body/div/div[4]/div/div[1]/span/div/div/div/div[2]/div/ul//label/span/input")
 
         print(opt)
@@ -124,7 +124,7 @@ class EasyClass(object):
         # drive.find_elements_by_xpath()
         # /html/body/div/div[4]/div/div[5]/div[4]/span[2]
         # long = self.drive.find_elements_by_xpath('/html/body/div[4]/div/div[5]/div[4]/span[2]')
-        long = self.drive.find_element_by_xpath("/html/body/div/div[4]/div/div[5]/div[4]/span[2]")
+        long = self.drive.find_element(By.XPATH, "/html/body/div/div[4]/div/div[5]/div[4]/span[2]")
         print(long.get_attribute('outerHTML'))
         # selenium更新，指定一个标签的时候会直接返回一个对象，不会返回列表了
 
@@ -165,13 +165,13 @@ class EasyClass(object):
             xpath_list = []
             for numP in range(len(charp_list)):
                 xpath_demo2 = '//*[@id="coursetree"]/div[{}]/div[{}]/h4/a'
-                classjsNum = len(self.drive.find_elements_by_xpath(xpath_demo.format(numP + 1)))
+                classjsNum = len(self.drive.find_elements(By.XPATH, xpath_demo.format(numP + 1)))
                 for numC in range(classjsNum):
                     xpath_new2 = xpath_demo2.format(numP + 1, numC + 1)
                     xpath_list.append(xpath_new2)
             if len(xpath_list) == 0:
                 raise TimeoutError
-            print('一共有%d节课', len(xpath_list))
+            print('一共有{}节课'.format(len(xpath_list)))
             self.allclass = len(xpath_list)
             self.class_xpath_list = xpath_list
 
@@ -198,10 +198,10 @@ class EasyClass(object):
         # 找到指定课程xpath
         xpath_next = self.class_xpath_list[self.classnum - 1]
 
-        b = self.drive.find_elements_by_xpath(xpath_next)
+        b = self.drive.find_elements(By.XPATH, xpath_next)
         # print(b)
         b[0].click()
-        print("切换到课程：", self.drive.find_elements_by_xpath(xpath_next)[0].get_attribute('textContent'))
+        print("切换到课程：", self.drive.find_elements(By.XPATH, xpath_next)[0].get_attribute('textContent'))
         print("剩余：", self.allclass - self.classnum, "节课")
 
     def getClassnum(self):
@@ -226,12 +226,11 @@ if __name__ == "__main__":
     print("正在检测系统环境：")
     print("根据下面的提示完成相应操作，您就可以使用本程序进行刷课了")
     print("====================================================================")
-    exam = 'https://mooc1-1.chaoxing.com/mycourse/studentstudy?chapterId=398481847&courseId=217666369&clazzid=39610013&enc=1812c2df5429653b1f6ed82782730245'
+    exam = 'https://mooc1-1.chaoxing.com/mycourse/studentstudy?chapterId={...}&courseId={...}&clazzid={...}&enc={}'
     userID = input("请输入用户名：")
     passwd = input("请输入密码：")
-    print("网址示例：", exam)
+    print("网址示例：", exam, ", 到enc为止，后面全部删除，网址使用mooc1-1.chaoxing.com")
     url = input("请输入起始网址")
-    # https://mooc1-1.chaoxing.com/mycourse/studentstudy?chapterId=398481847&courseId=217666369&clazzid=39610013&enc=1812c2df5429653b1f6ed82782730245
     ec = EasyClass(url, userID, passwd)
     ec.log_in()
     # 获取课程列表
@@ -281,7 +280,7 @@ if __name__ == "__main__":
                         ec.go_to_videoPage(i)
                         sleep(5)
                         ec.start_video()
-                        sleep(5)
+                        sleep(10)
                         ec.pagedone = True
                         break
                     except:
