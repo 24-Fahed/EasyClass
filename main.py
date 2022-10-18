@@ -1,3 +1,4 @@
+from tarfile import USTAR_FORMAT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from time import sleep
@@ -68,7 +69,7 @@ class EasyClass(object):
         :return: NONE
         '''
         # 切换frame
-        self.drive.execute_script("window.scrollBy(0,1000)")
+        self.drive.execute_script("window.scrollBy(0,100)") # 下拉标签，让程序可以检测到播放按钮
         self.drive.switch_to.frame('iframe')
 
         self.drive.switch_to.frame(0)
@@ -124,7 +125,8 @@ class EasyClass(object):
         # drive.find_elements_by_xpath()
         # /html/body/div/div[4]/div/div[5]/div[4]/span[2]
         # long = self.drive.find_elements_by_xpath('/html/body/div[4]/div/div[5]/div[4]/span[2]')
-        long = self.drive.find_element(By.XPATH, "/html/body/div/div[4]/div/div[5]/div[4]/span[2]")
+        # long = self.drive.find_element(By.XPATH, "/html/body/div/div[4]/div/div[5]/div[4]/span[2]")
+        long = self.drive.find_element(By.CLASS_NAME, "vjs-duration-display")
         print(long.get_attribute('outerHTML'))
         # selenium更新，指定一个标签的时候会直接返回一个对象，不会返回列表了
 
@@ -134,6 +136,19 @@ class EasyClass(object):
         print("时常：", min, ':', sec)
         sumlong = min * 60 + sec
         return sumlong
+
+    def get_curr_time(self):
+        curr_time = self.drive.find_element(By.CLASS_NAME, "vjs-current-time-display")
+        # print("curr_time {}".format(curr_time.get_attribute('outerHTML')))
+
+        str_currTime = curr_time.get_attribute("textContent")
+        min = int(str_currTime[0: str_currTime.index(":")])
+        sec = int(str_currTime[str_currTime.index(":") + 1:])
+
+        print("当前时常：{}: {}".format(min, sec))
+        currlen = min * 60 + sec
+
+        return currlen
 
     def start_check(self, t):
         '''
@@ -153,6 +168,22 @@ class EasyClass(object):
             sleep(5)
             # 测试代码+++++++++++++++++++
             # break
+
+    def start_chect_2(self, t):
+        while True:
+            try:
+                curr_time = self.get_curr_time()
+            except Exception as r:
+                print("get curr time error")
+                print(r)
+
+            if (t - 1 <= curr_time):
+                break
+            try:
+                self.check_cycle()
+            except Exception as r:
+                print("暂时未发现目标", curr_time, "总时长", t)
+            sleep(10)
 
     def get_class_xpath(self):
         '''
@@ -237,28 +268,6 @@ if __name__ == "__main__":
     ec.get_class_xpath()
     ec.setClassnum()
     print("选中课程：", ec.getClassnum())
-    # 开始视频播放
-    # while ec.flage != False:
-    #     try:
-    #         sleep(5)
-    #         ec.go_to_videoPage("c2")
-    #         sleep(5)
-    #         ec.start_video()
-    #     except Exception as e:
-    #         print(e)
-    #         ec.go_to_videoPage("c1")
-    #         sleep(3)
-    #         ec.start_video()
-    #     try:
-    #         time = ec.get_time()
-    #         if time == 0:
-    #             print("重新尝试获取时长")
-    #             time = ec.get_time()
-    #         else:
-    #             ec.start_check(time)
-    #             ec.next_video()
-    #     except Exception as ee:
-    #         print(ee)
 
     # 开始视频播放
     vidio_tag_list = ['c1', 'c2']
@@ -295,10 +304,11 @@ if __name__ == "__main__":
             time = ec.get_time()
             if time == 0:
                 # 尝试重新获取时间
-                print("重新获取时常")
+                print("重新获取时长")
                 time = ec.get_time()
             else:
-                ec.start_check(time)
+                # ec.start_check(time)
+                ec.start_chect_2(time)
                 ec.pagedone = False
                 ec.switchclass = False
                 ec.classnum += 1
@@ -308,3 +318,9 @@ if __name__ == "__main__":
             print(err)
 
     os.system('pause')
+
+'''
+三个标志位：pagedone，是否切换到有视频的标签页面，如果没有，设置位False，如果已经切换，为True
+    switchclass：切换课程标志。如果允许切换视频，设置为False，如果不允许切换视频（已经切换到正确的视频上）设置为True
+    flag：课程是否结束，结束设置为True
+'''
