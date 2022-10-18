@@ -6,7 +6,6 @@ from re import findall
 import os
 
 
-# https://mooc1.chaoxing.com/mycourse/studentstudy?chapterId=443991288&courseId=223543911&clazzid=52846586&enc=a6610ceda146c4bba791421adedaa3d6
 
 class EasyClass(object):
     def __init__(self, classurl, userID, passwd):
@@ -90,7 +89,12 @@ class EasyClass(object):
         sub_butt = self.drive.find_element(By.ID, "videoquiz-submit")
         # 点击提交按钮
         sub_butt.click()
-        return
+        time = self.get_curr_time()
+        sleep(5)
+        if time == self.get_curr_time():
+            return -1 # 错误的答案
+
+        return 0
 
     def check_cycle(self):
         '''/html/body/div[4]/div/div[1]/span/div/div/ul//label/input'''
@@ -98,34 +102,31 @@ class EasyClass(object):
         该循环用来检测视频中是否出现答题环节
         :return:NONE
         '''
-        # qustion = self.drive.find_element_by_class_name("tkItem_title")
-        # quiz = qustion.find_element_by_class_name("ans-videoquiz-title")
-        # print(quiz.text)
-        # opt = qustion.find_elements_by_xpath("/html/body/div[4]/div/div[1]/span/div/div/ul/li/label/input")
-        # 上面为老代码
-        # 超星更新，将答题页面修改为一个iframe
-
         qustion = self.drive.find_element(By.CLASS_NAME, "tkItem")
         quiz = qustion.find_element(By.CLASS_NAME, "tkItem_title")
-        print(quiz.text)
-        # opt = qustion.find_elements_by_xpath("/html/body/div/div[4]/div/div[1]/span/div/div/div/div[2]/div/ul/li[1]/label/span/input")
+        print(quiz.text) # 输出问题
+        '''
         opt = qustion.find_elements(
             By.XPATH,
             "/html/body/div/div[4]/div/div[1]/span/div/div/div/div[2]/div/ul//label/span/input")
-
+        '''
+        opt = qustion.find_elements(By.NAME, "ans-videoquiz-opt")
         print(opt)
-        for opt_t in opt:
+        '''
+        for opt_t in opt: 
             value = opt_t.get_attribute("value")
             if value == "true":
                 opt_t.click()
                 self.submit(qustion)
+        ''' 
+        for opt_t in opt:
+            opt_t.click()
+            if self.submit(qustion) == 0:
+                break
+            print("答案错误，重试")
 
     def get_time(self):
         sleep(10)
-        # drive.find_elements_by_xpath()
-        # /html/body/div/div[4]/div/div[5]/div[4]/span[2]
-        # long = self.drive.find_elements_by_xpath('/html/body/div[4]/div/div[5]/div[4]/span[2]')
-        # long = self.drive.find_element(By.XPATH, "/html/body/div/div[4]/div/div[5]/div[4]/span[2]")
         long = self.drive.find_element(By.CLASS_NAME, "vjs-duration-display")
         print(long.get_attribute('outerHTML'))
         # selenium更新，指定一个标签的时候会直接返回一个对象，不会返回列表了
@@ -145,7 +146,7 @@ class EasyClass(object):
         min = int(str_currTime[0: str_currTime.index(":")])
         sec = int(str_currTime[str_currTime.index(":") + 1:])
 
-        print("当前时常：{}: {}".format(min, sec))
+        # print("当前时常：{}: {}".format(min, sec))
         currlen = min * 60 + sec
 
         return currlen
@@ -252,7 +253,7 @@ class EasyClass(object):
 
 
 if __name__ == "__main__":
-    print("欢迎使用EasyClass | V 0.0.2")
+    print("欢迎使用EasyClass | V 0.0.3")
     print("作者：Hugo")
     print("正在检测系统环境：")
     print("根据下面的提示完成相应操作，您就可以使用本程序进行刷课了")
